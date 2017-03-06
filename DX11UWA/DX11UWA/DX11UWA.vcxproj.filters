@@ -110,6 +110,12 @@
     <Image Include="Assets\haunter.dds">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="Assets\plat.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\plat.png">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -120,6 +126,9 @@
       <Filter>Assets</Filter>
     </None>
     <None Include="Assets\haunter.obj">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Assets\MMstage.obj">
       <Filter>Assets</Filter>
     </None>
   </ItemGroup>

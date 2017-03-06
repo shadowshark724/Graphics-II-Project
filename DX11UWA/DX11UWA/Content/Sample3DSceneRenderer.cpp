@@ -55,7 +55,7 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
 
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
-	static const XMVECTORF32 eye = { 0.0f, 0.7f, -1.5f, 0.0f };
+	static const XMVECTORF32 eye = { 0.0f, 1.7f, -10.5f, 0.0f };
 	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
 	static const XMVECTORF32 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
@@ -80,11 +80,13 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 
 	// Update or move camera here
-	UpdateCamera(timer, 1.0f, 0.75f);
+	UpdateCamera(timer, 2.0f, 0.75f);
 
 	m_DittoconstantBufferData = m_constantBufferData;
 	XMStoreFloat4x4(&m_DittoconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(3.1415f)));
 
+	m_PlatformconstantBufferData = m_constantBufferData;
+	XMStoreFloat4x4(&m_PlatformconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(3.1415f)));
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -222,6 +224,15 @@ void Sample3DSceneRenderer::Render(void)
 
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	XMStoreFloat4x4(&m_DittoconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+	DirectX::XMMATRIX scalePlat = { 0,0,0,1.0f/10.0f,
+							0,0,0,1.0f/10.0f,
+							0,0,0,1.0f/10.0f,
+							0,0,0,1 };
+	m_PlatformconstantBufferData.model._11 *= 100.0f;
+	m_PlatformconstantBufferData.model._22 *= 100.0f;
+	m_PlatformconstantBufferData.model._33 *= 100.0f;
+	//XMStoreFloat4x4(&m_PlatformconstantBufferData.view, scalePlat);
+	XMStoreFloat4x4(&m_PlatformconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	
 #pragma region Pyrimid
 	// Prepare the constant buffer to send it to the graphics device.
@@ -267,9 +278,34 @@ void Sample3DSceneRenderer::Render(void)
 
 	context->DrawIndexed(m_DittoindexCount, 0, 0);
 #pragma endregion
+
+#pragma region Platform
+	// Prepare the constant buffer to send it to the graphics device.
+		context->UpdateSubresource1(m_PlatformconstantBuffer.Get(), 0, NULL, &m_PlatformconstantBufferData, 0, 0, 0);
+	// Each vertex is one instance of the VertexPositionColor struct.
+	stride = sizeof(VertexPositionUVNormal);
+	offset = 0;
+	context->IASetVertexBuffers(0, 1, m_PlatformvertexBuffer.GetAddressOf(), &stride, &offset);
+	// Each index is one 16-bit unsigned integer (short).
+	context->IASetIndexBuffer(m_PlatformindexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	context->IASetInputLayout(m_PlatforminputLayout.Get());
+	// Attach our vertex shader.
+	context->VSSetShader(m_PlatformvertexShader.Get(), nullptr, 0);
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(0, 1, m_PlatformconstantBuffer.GetAddressOf(), nullptr, nullptr);
+	// Attach our pixel shader.
+	context->PSSetShader(m_PlatformpixelShader.Get(), nullptr, 0);
+	// Draw the objects.
+	context->PSSetShaderResources(0, 1, m_PlatformResourceView.GetAddressOf());
+	context->PSSetSamplers(0, 1, m_PlatformSampleState.GetAddressOf());
+
+	context->DrawIndexed(m_PlatformindexCount, 0, 0);
+
+#pragma endregion
 }
 
-void Sample3DSceneRenderer::LoadObjFile(const char * path, std::vector<VertexPositionUVNormal> & vertuvnorm, std::vector<unsigned int> &index)
+void Sample3DSceneRenderer::LoadObjFile(const char * path, std::vector<VertexPositionUVNormal> & vertuvnorm, std::vector<unsigned int> &index, bool backwards)
 {
 	std::vector<unsigned int> vertIndices, uvIndices, normIndices;
 	std::vector<XMFLOAT3> temp_vert;
@@ -332,15 +368,30 @@ void Sample3DSceneRenderer::LoadObjFile(const char * path, std::vector<VertexPos
 			{
 				return;
 			}
-			vertIndices.push_back(vert1);
-			vertIndices.push_back(vert2);
-			vertIndices.push_back(vert3);
-			uvIndices.push_back(uv1);
-			uvIndices.push_back(uv2);
-			uvIndices.push_back(uv3);
-			normIndices.push_back(norm1);
-			normIndices.push_back(norm2);
-			normIndices.push_back(norm3);
+			if (backwards == false)
+			{
+				vertIndices.push_back(vert1);
+				vertIndices.push_back(vert2);
+				vertIndices.push_back(vert3);
+				uvIndices.push_back(uv1);
+				uvIndices.push_back(uv2);
+				uvIndices.push_back(uv3);
+				normIndices.push_back(norm1);
+				normIndices.push_back(norm2);
+				normIndices.push_back(norm3);				
+			}
+			else
+			{
+				vertIndices.push_back(vert1);
+				vertIndices.push_back(vert3);
+				vertIndices.push_back(vert2);
+				uvIndices.push_back(uv1);
+				uvIndices.push_back(uv3);
+				uvIndices.push_back(uv2);
+				normIndices.push_back(norm1);
+				normIndices.push_back(norm3);
+				normIndices.push_back(norm2);
+			}
 		}
 	}
 	for (unsigned int i = 0; i < vertIndices.size(); i++)
@@ -353,7 +404,6 @@ void Sample3DSceneRenderer::LoadObjFile(const char * path, std::vector<VertexPos
 		vertuvnorm.push_back(tempo);
 		index.push_back(i);
 	}
-
 	return;
 }
 
@@ -477,7 +527,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		std::vector<VertexPositionUVNormal> vertuvposnorm;
 		std::vector<unsigned int> index;
 
-		LoadObjFile("Assets/haunter.obj", vertuvposnorm, index);
+		LoadObjFile("Assets/haunter.obj", vertuvposnorm, index, false);
 
 		D3D11_SAMPLER_DESC textsample_desc;
 		ZeroMemory(&textsample_desc, sizeof(textsample_desc));
@@ -523,6 +573,89 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 	});
 #pragma endregion
 
+#pragma region Platform
+	// Load shaders asynchronously.
+	auto PloadVSTask = DX::ReadDataAsync(L"MyVertexShader.cso");
+	auto PloadPSTask = DX::ReadDataAsync(L"MyPixelShader.cso");
+
+	// After the vertex shader file is loaded, create the shader and input layout.
+	auto createPlatformVSTask = PloadVSTask.then([this](const std::vector<byte>& fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&fileData[0], fileData.size(), nullptr, &m_PlatformvertexShader));
+
+		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), &fileData[0], fileData.size(), &m_PlatforminputLayout));
+	});
+
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	auto createPlatformPSTask = PloadPSTask.then([this](const std::vector<byte>& fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&fileData[0], fileData.size(), nullptr, &m_PlatformpixelShader));
+
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_PlatformconstantBuffer));
+	});
+
+
+	auto createPlatform = (createPlatformPSTask && createPlatformVSTask).then([this]()
+	{
+
+		std::vector<VertexPositionUVNormal> vertuvposnorm;
+		std::vector<unsigned int> index;
+
+		LoadObjFile("Assets/MMstage.obj", vertuvposnorm, index,false);
+		
+
+		D3D11_SAMPLER_DESC textsample_desc;
+		ZeroMemory(&textsample_desc, sizeof(textsample_desc));
+		textsample_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		textsample_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		textsample_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		textsample_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateSamplerState(&textsample_desc, &m_PlatformSampleState));
+		DX::ThrowIfFailed(CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"Assets/plat.dds", NULL, &m_PlatformResourceView));
+
+		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+		vertexBufferData.pSysMem = vertuvposnorm.data();
+		vertexBufferData.SysMemPitch = 0;
+		vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC vertexBufferDesc(vertuvposnorm.size() * sizeof(VertexPositionUVNormal), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&vertexBufferDesc,
+				&vertexBufferData,
+				&m_PlatformvertexBuffer
+			)
+		);
+
+		m_PlatformindexCount = index.size();
+
+		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+		indexBufferData.pSysMem = index.data();
+		indexBufferData.SysMemPitch = 0;
+		indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC indexBufferDesc(index.size() * sizeof(unsigned int), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(
+			m_deviceResources->GetD3DDevice()->CreateBuffer(
+				&indexBufferDesc,
+				&indexBufferData,
+				&m_PlatformindexBuffer
+			)
+		);
+	});
+
+	createModel.then([this]() {
+		m_loadingComplete = true;
+	});
+#pragma endregion
+
 }
 
 void Sample3DSceneRenderer::ReleaseDeviceDependentResources(void)
@@ -541,4 +674,15 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources(void)
 	m_DittovertexShader.Reset();
 	m_DittopixelShader.Reset();
 	m_DittoconstantBuffer.Reset();
+	m_DittoSampleState.Reset();
+	m_DittoResourceView.Reset();
+
+	m_PlatforminputLayout.Reset();
+	m_PlatformvertexBuffer.Reset();
+	m_PlatformindexBuffer.Reset();
+	m_PlatformvertexShader.Reset();
+	m_PlatformpixelShader.Reset();
+	m_PlatformconstantBuffer.Reset();
+	m_PlatformSampleState.Reset();
+	m_PlatformResourceView.Reset();
 }

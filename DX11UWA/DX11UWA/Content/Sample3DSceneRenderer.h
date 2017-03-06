@@ -22,7 +22,7 @@ namespace DX11UWA
 		void TrackingUpdate(float positionX);
 		void StopTracking(void);
 		inline bool IsTracking(void) { return m_tracking; }
-		void LoadObjFile(const char * path, std::vector<VertexPositionUVNormal> & vertuvnorm, std::vector<unsigned int> &index);
+		void LoadObjFile(const char * path, std::vector<VertexPositionUVNormal> & vertuvnorm, std::vector<unsigned int> &index, bool backwards);
 
 		// Helper functions for keyboard and mouse input
 		void SetKeyboardButtons(const char* list);
@@ -57,6 +57,16 @@ namespace DX11UWA
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_DittoSampleState;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_DittoResourceView;
 		
+		// SimplePlatform
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_PlatforminputLayout;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_PlatformvertexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_PlatformindexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_PlatformvertexShader;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_PlatformpixelShader;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_PlatformconstantBuffer;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_PlatformSampleState;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_PlatformResourceView;
+
 		// System resources for cube geometry.
 		ModelViewProjectionConstantBuffer	m_constantBufferData;
 		uint32	m_indexCount;
@@ -64,6 +74,10 @@ namespace DX11UWA
 		// Ditto
 		ModelViewProjectionConstantBuffer m_DittoconstantBufferData;
 		uint32 m_DittoindexCount;
+
+		// Ditto
+		ModelViewProjectionConstantBuffer m_PlatformconstantBufferData;
+		uint32 m_PlatformindexCount;
 
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
