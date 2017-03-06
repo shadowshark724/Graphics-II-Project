@@ -107,6 +107,9 @@
     <Image Include="Assets\035b7734.dds">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="Assets\haunter.dds">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -114,6 +117,9 @@
   <ItemGroup>
     <None Include="DX11UWA_TemporaryKey.pfx" />
     <None Include="Assets\ditto.obj">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Assets\haunter.obj">
       <Filter>Assets</Filter>
     </None>
   </ItemGroup>

@@ -477,7 +477,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		std::vector<VertexPositionUVNormal> vertuvposnorm;
 		std::vector<unsigned int> index;
 
-		LoadObjFile("Assets/ditto.obj", vertuvposnorm, index);
+		LoadObjFile("Assets/haunter.obj", vertuvposnorm, index);
 
 		D3D11_SAMPLER_DESC textsample_desc;
 		ZeroMemory(&textsample_desc, sizeof(textsample_desc));
@@ -487,7 +487,7 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		textsample_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateSamplerState(&textsample_desc, &m_DittoSampleState));
-		DX::ThrowIfFailed(CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"Assets/035b7734.dds", NULL, &m_DittoResourceView));
+		DX::ThrowIfFailed(CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"Assets/haunter.dds", NULL, &m_DittoResourceView));
 
 		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
 		vertexBufferData.pSysMem = vertuvposnorm.data();
