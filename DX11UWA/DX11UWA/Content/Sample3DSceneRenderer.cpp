@@ -82,6 +82,9 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	// Update or move camera here
 	UpdateCamera(timer, 2.0f, 0.75f);
 
+	m_SkyboxconstantBufferData = m_constantBufferData;
+	XMStoreFloat4x4(&m_SkyboxconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(3.1415f)));
+
 	m_DittoconstantBufferData = m_constantBufferData;
 	XMStoreFloat4x4(&m_DittoconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(3.1415f)));
 
@@ -222,6 +225,7 @@ void Sample3DSceneRenderer::Render(void)
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
+	XMStoreFloat4x4(&m_SkyboxconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	XMStoreFloat4x4(&m_DittoconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	/*DirectX::XMMATRIX scalePlat = { 0,0,0,1.0f/10.0f,
 							0,0,0,1.0f/10.0f,
@@ -252,6 +256,27 @@ void Sample3DSceneRenderer::Render(void)
 	context->PSSetShader(m_pixelShader.Get(), nullptr, 0);
 	// Draw the objects.
 	context->DrawIndexed(m_indexCount, 0, 0);
+#pragma endregion
+
+#pragma region skybox
+	// Prepare the constant buffer to send it to the graphics device.
+	context->UpdateSubresource1(m_SkyboxconstantBuffer.Get(), 0, NULL, &m_SkyboxconstantBufferData, 0, 0, 0);
+	// Each vertex is one instance of the VertexPositionColor struct.
+	stride = sizeof(VertexPositionColor);
+	offset = 0;
+	context->IASetVertexBuffers(0, 1, m_SkyboxvertexBuffer.GetAddressOf(), &stride, &offset);
+	// Each index is one 16-bit unsigned integer (short).
+	context->IASetIndexBuffer(m_SkyboxindexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	context->IASetInputLayout(m_SkyboxinputLayout.Get());
+	// Attach our vertex shader.
+	context->VSSetShader(m_SkyboxvertexShader.Get(), nullptr, 0);
+	// Send the constant buffer to the graphics device.
+	context->VSSetConstantBuffers1(0, 1, m_SkyboxconstantBuffer.GetAddressOf(), nullptr, nullptr);
+	// Attach our pixel shader.
+	context->PSSetShader(m_SkyboxpixelShader.Get(), nullptr, 0);
+	// Draw the objects.
+	//context->DrawIndexed(m_SkyboxindexCount, 0, 0);
 #pragma endregion
 
 #pragma region Ditto
@@ -485,6 +510,100 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 	// Once the cube is loaded, the object is ready to be rendered.
 	createCubeTask.then([this]()
+	{
+		m_loadingComplete = true;
+	});
+#pragma endregion
+
+
+#pragma region skybox
+	loadVSTask = DX::ReadDataAsync(L"SampleVertexShader.cso");
+	loadPSTask = DX::ReadDataAsync(L"SamplePixelShader.cso");
+
+	// After the vertex shader file is loaded, create the shader and input layout.
+	createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateVertexShader(&fileData[0], fileData.size(), nullptr, &m_SkyboxvertexShader));
+
+		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), &fileData[0], fileData.size(), &m_SkyboxinputLayout));
+	});
+
+	// After the pixel shader file is loaded, create the shader and constant buffer.
+	createPSTask = loadPSTask.then([this](const std::vector<byte>& fileData)
+	{
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreatePixelShader(&fileData[0], fileData.size(), nullptr, &m_SkyboxpixelShader));
+
+		CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ModelViewProjectionConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&constantBufferDesc, nullptr, &m_SkyboxconstantBuffer));
+	});
+
+	// Once both shaders are loaded, create the mesh.
+	auto createSkyTask = (createPSTask && createVSTask).then([this]()
+	{
+		// Load mesh vertices. Each vertex has a position and a color.
+		static const VertexPositionColor cubeVertices[] =
+		{
+			{ XMFLOAT3(-50.5f, -50.5f, -50.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(-50.5f, -50.5f,  50.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(-50.5f,  50.5f, -50.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(-50.5f,  50.5f,  50.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(50.5f, -50.5f, -50.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
+			{ XMFLOAT3(50.5f, -50.5f,  50.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(50.5f,  50.5f, -50.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(50.5f,  50.5f,  50.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
+		};
+
+		D3D11_SUBRESOURCE_DATA vertexBufferData = { 0 };
+		vertexBufferData.pSysMem = cubeVertices;
+		vertexBufferData.SysMemPitch = 0;
+		vertexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &m_SkyboxvertexBuffer));
+
+		// Load mesh indices. Each trio of indices represents
+		// a triangle to be rendered on the screen.
+		// For example: 0,2,1 means that the vertices with indexes
+		// 0, 2 and 1 from the vertex buffer compose the 
+		// first triangle of this mesh.
+		static const unsigned short cubeIndices[] =
+		{
+			2,1,0, // -x
+			2,3,1,
+
+			5,6,4, // +x
+			7,6,5,
+
+			1,5,0, // -y
+			5,4,0,
+
+			6,7,2, // +y
+			7,3,2,
+
+			4,6,0, // -z
+			6,2,0,
+
+			3,7,1, // +z
+			7,5,1,
+		};
+
+		m_SkyboxindexCount = ARRAYSIZE(cubeIndices);
+
+		D3D11_SUBRESOURCE_DATA indexBufferData = { 0 };
+		indexBufferData.pSysMem = cubeIndices;
+		indexBufferData.SysMemPitch = 0;
+		indexBufferData.SysMemSlicePitch = 0;
+		CD3D11_BUFFER_DESC indexBufferDesc(sizeof(cubeIndices), D3D11_BIND_INDEX_BUFFER);
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, &m_SkyboxindexBuffer));
+	});
+
+	// Once the cube is loaded, the object is ready to be rendered.
+	createSkyTask.then([this]()
 	{
 		m_loadingComplete = true;
 	});

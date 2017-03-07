@@ -47,6 +47,15 @@ namespace DX11UWA
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBuffer;
 
 
+		// Skybox
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_SkyboxinputLayout;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_SkyboxvertexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_SkyboxindexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_SkyboxvertexShader;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_SkyboxpixelShader;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_SkyboxconstantBuffer;
+
+
 		// Ditto
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_DittoinputLayout;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_DittovertexBuffer;
@@ -70,6 +79,11 @@ namespace DX11UWA
 		// System resources for cube geometry.
 		ModelViewProjectionConstantBuffer	m_constantBufferData;
 		uint32	m_indexCount;
+
+		// Skybox
+		ModelViewProjectionConstantBuffer	m_SkyboxconstantBufferData;
+		uint32	m_SkyboxindexCount;
+
 
 		// Ditto
 		ModelViewProjectionConstantBuffer m_DittoconstantBufferData;
