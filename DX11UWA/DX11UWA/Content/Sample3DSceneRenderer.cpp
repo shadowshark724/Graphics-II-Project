@@ -80,7 +80,7 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 
 
 	// Update or move camera here
-	UpdateCamera(timer, 2.0f, 0.75f);
+	UpdateCamera(timer, 3.0f, 0.75f);
 
 	m_SkyboxconstantBufferData = m_constantBufferData;
 	XMStoreFloat4x4(&m_SkyboxconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(3.1415f)));
@@ -784,6 +784,13 @@ void Sample3DSceneRenderer::ReleaseDeviceDependentResources(void)
 	m_constantBuffer.Reset();
 	m_vertexBuffer.Reset();
 	m_indexBuffer.Reset();
+
+	m_SkyboxvertexShader.Reset();
+	m_SkyboxinputLayout.Reset();
+	m_SkyboxpixelShader.Reset();
+	m_SkyboxconstantBuffer.Reset();
+	m_SkyboxvertexBuffer.Reset();
+	m_SkyboxindexBuffer.Reset();
 
 	m_DittoinputLayout.Reset();
 	m_DittovertexBuffer.Reset();

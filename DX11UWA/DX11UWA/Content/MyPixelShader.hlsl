@@ -12,15 +12,17 @@ struct PixelShaderInput
 
 float4 DirectionL(PixelShaderInput input)
 {
+	float4 baseclr = base.Sample(samples, input.uv);
 	float3 LightDirection = { -10.0f, 10.0f, 0.0f };
 	float LightRatio = clamp(dot(-normalize(LightDirection), normalize(input.normal)), 0, 1);
-	float3 Color = { .0f, 0.0f, 01.0f };
-	float4 ReturnThis = float4(Color, 1.0f) * LightRatio;
+	float3 Color = { .0f, 0.0f, 1.10f };
+	float4 ReturnThis = float4(Color, 1.0f) * LightRatio * baseclr;
 	return ReturnThis;
 }
 
 float4 PointL(PixelShaderInput input)
 {
+	float4 baseclr = base.Sample(samples, input.uv);
 	float3 lightpos;
 	float radius = 25.50f;
 
@@ -32,18 +34,18 @@ float4 PointL(PixelShaderInput input)
 	float3 direction = normalize(lightpos);
 	float ratio = clamp(dot(-normalize(direction), normalize(input.normal)), 0.0f, 1.0f);
 	float att = 1.0f - clamp(mag / radius,0.0f,1.0f);
-	float3 clr = { 0.0f,.50f,0.0f };
-	float4 ReturnThis = float4(clr, 1.0f)*ratio*(att*att);
+	float3 clr = { 0.20f,.750f,0.0f };
+	float4 ReturnThis = float4(clr, 1.0f)*ratio*(att*att)*baseclr;
 	return ReturnThis;
 }
 
 float4 SpotL(PixelShaderInput input)
 {
+	float4 baseclr = base.Sample(samples, input.uv);
 	float3 pos;
 	pos.x = 0.0f - input.WorldPos.x;
 	pos.y = 10.5f - input.WorldPos.y;
-	pos.z = 0.0f - input.WorldPos.z;
-
+	pos.z = -1.0f - input.WorldPos.z;
 	float3 Cone = { 0.0f,-1.0f, 0.0f };
 	float3 Direction = normalize(pos);
 	float ratio = clamp(dot(-normalize(Direction), normalize(Cone)), 0.0f, 1.0f);
@@ -51,7 +53,7 @@ float4 SpotL(PixelShaderInput input)
 	float lightratio = clamp(dot(normalize(Direction), normalize(input.normal)), 0.0f, 1.0f);
 
 	float3 clr = { 1.0f,0.0f,0.0f };
-	float4 ReturnThis = float4(clr, 1.0f)*lightratio*spotfactor;
+	float4 ReturnThis = float4(clr, 1.0f)*lightratio*spotfactor*baseclr;
 	return ReturnThis;
 }
 
