@@ -14,4 +14,3 @@
 #include <agile.h>
 #include <concrt.h>
 #include <vector>
-#include <math.h>

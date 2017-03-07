@@ -223,13 +223,13 @@ void Sample3DSceneRenderer::Render(void)
 	auto context = m_deviceResources->GetD3DDeviceContext();
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	XMStoreFloat4x4(&m_DittoconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
-	DirectX::XMMATRIX scalePlat = { 0,0,0,1.0f/10.0f,
+	/*DirectX::XMMATRIX scalePlat = { 0,0,0,1.0f/10.0f,
 							0,0,0,1.0f/10.0f,
 							0,0,0,1.0f/10.0f,
 							0,0,0,1 };
 	m_PlatformconstantBufferData.model._11 *= 100.0f;
 	m_PlatformconstantBufferData.model._22 *= 100.0f;
-	m_PlatformconstantBufferData.model._33 *= 100.0f;
+	m_PlatformconstantBufferData.model._33 *= 100.0f;*/
 	//XMStoreFloat4x4(&m_PlatformconstantBufferData.view, scalePlat);
 	XMStoreFloat4x4(&m_PlatformconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	
