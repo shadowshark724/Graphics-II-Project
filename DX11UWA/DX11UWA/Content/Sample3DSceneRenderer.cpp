@@ -221,7 +221,6 @@ void Sample3DSceneRenderer::Render(void)
 	}
 
 	auto context = m_deviceResources->GetD3DDeviceContext();
-
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	XMStoreFloat4x4(&m_DittoconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	DirectX::XMMATRIX scalePlat = { 0,0,0,1.0f/10.0f,
@@ -300,7 +299,7 @@ void Sample3DSceneRenderer::Render(void)
 	context->PSSetShaderResources(0, 1, m_PlatformResourceView.GetAddressOf());
 	context->PSSetSamplers(0, 1, m_PlatformSampleState.GetAddressOf());
 
-	context->DrawIndexed(m_PlatformindexCount, 0, 0);
+	//context->DrawIndexed(m_PlatformindexCount, 0, 0);
 
 #pragma endregion
 }
@@ -610,7 +609,6 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		std::vector<unsigned int> index;
 
 		LoadObjFile("Assets/MMstage.obj", vertuvposnorm, index,false);
-		
 
 		D3D11_SAMPLER_DESC textsample_desc;
 		ZeroMemory(&textsample_desc, sizeof(textsample_desc));
