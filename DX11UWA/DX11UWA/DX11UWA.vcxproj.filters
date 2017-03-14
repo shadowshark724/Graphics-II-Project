@@ -113,7 +113,10 @@
     <Image Include="Assets\plat.dds">
       <Filter>Assets</Filter>
     </Image>
-    <Image Include="Assets\plat.png">
+    <Image Include="Assets\graveller.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\SunsetSkybox.dds">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
@@ -131,6 +134,9 @@
     <None Include="Assets\MMstage.obj">
       <Filter>Assets</Filter>
     </None>
+    <None Include="Assets\graveller.obj">
+      <Filter>Assets</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Content\SamplePixelShader.hlsl">
@@ -143,6 +149,12 @@
       <Filter>Content\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Content\MyVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\SkyPixelShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\SkyVertexShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

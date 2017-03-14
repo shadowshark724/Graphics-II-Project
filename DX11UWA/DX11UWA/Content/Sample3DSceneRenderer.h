@@ -54,7 +54,8 @@ namespace DX11UWA
 		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_SkyboxvertexShader;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_SkyboxpixelShader;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_SkyboxconstantBuffer;
-
+		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_SkyboxSampleState;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SkyboxResourceView;
 
 		// Ditto
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_DittoinputLayout;

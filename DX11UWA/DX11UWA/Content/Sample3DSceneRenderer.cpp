@@ -53,7 +53,8 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 	XMMATRIX orientationMatrix = XMLoadFloat4x4(&orientation);
 
 	XMStoreFloat4x4(&m_constantBufferData.projection, XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
-
+	XMStoreFloat4x4(&m_DittoconstantBufferData.projection, XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
+	XMStoreFloat4x4(&m_PlatformconstantBufferData.projection, XMMatrixTranspose(perspectiveMatrix * orientationMatrix));
 	// Eye is at (0,0.7,1.5), looking at point (0,-0.1,0) with the up-vector along the y-axis.
 	static const XMVECTORF32 eye = { 0.0f, 1.7f, -10.5f, 0.0f };
 	static const XMVECTORF32 at = { 0.0f, -0.1f, 0.0f, 0.0f };
@@ -61,7 +62,8 @@ void Sample3DSceneRenderer::CreateWindowSizeDependentResources(void)
 
 	XMStoreFloat4x4(&m_camera, XMMatrixInverse(nullptr, XMMatrixLookAtLH(eye, at, up)));
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
-
+	XMStoreFloat4x4(&m_DittoconstantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
+	XMStoreFloat4x4(&m_PlatformconstantBufferData.view, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
 
 }
 
@@ -74,7 +76,15 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 		float radiansPerSecond = XMConvertToRadians(m_degreesPerSecond);
 		double totalRotation = timer.GetTotalSeconds() * radiansPerSecond;
 		float radians = static_cast<float>(fmod(totalRotation, XM_2PI));
-
+		
+		
+		m_PlatformconstantBufferData.light.x = radians;
+		m_PlatformconstantBufferData.light.y = radians;
+		m_PlatformconstantBufferData.light.z = radians;
+		//m_DittoconstantBufferData = m_constantBufferData;
+		//XMStoreFloat4x4(&m_PlatformconstantBufferData.light, XMMatrixTranspose(XMMatrixRotationZ(radians)));
+		m_DittoconstantBufferData.light = m_PlatformconstantBufferData.light;
+		
 		Rotate(radians);
 	}
 
@@ -82,14 +92,14 @@ void Sample3DSceneRenderer::Update(DX::StepTimer const& timer)
 	// Update or move camera here
 	UpdateCamera(timer, 3.0f, 0.75f);
 
-	m_SkyboxconstantBufferData = m_constantBufferData;
-	XMStoreFloat4x4(&m_SkyboxconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(3.1415f)));
+	//m_SkyboxconstantBufferData = m_constantBufferData;
+	//XMStoreFloat4x4(&m_SkyboxconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(3.1415f)));
 
-	m_DittoconstantBufferData = m_constantBufferData;
+	
 	XMStoreFloat4x4(&m_DittoconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(3.1415f)));
 
-	m_PlatformconstantBufferData = m_constantBufferData;
-	XMStoreFloat4x4(&m_PlatformconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(3.1415f)));
+	//m_PlatformconstantBufferData = m_constantBufferData;
+	XMStoreFloat4x4(&m_PlatformconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(0.0f)));
 }
 
 // Rotate the 3D cube model a set amount of radians.
@@ -97,6 +107,7 @@ void Sample3DSceneRenderer::Rotate(float radians)
 {
 	// Prepare to pass the updated model matrix to the shader
 	XMStoreFloat4x4(&m_constantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
+	//XMStoreFloat4x4(&m_DittoconstantBufferData.model, XMMatrixTranspose(XMMatrixRotationY(radians)));
 }
 
 void Sample3DSceneRenderer::UpdateCamera(DX::StepTimer const& timer, float const moveSpd, float const rotSpd)
@@ -227,14 +238,6 @@ void Sample3DSceneRenderer::Render(void)
 	XMStoreFloat4x4(&m_constantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	XMStoreFloat4x4(&m_SkyboxconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	XMStoreFloat4x4(&m_DittoconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
-	/*DirectX::XMMATRIX scalePlat = { 0,0,0,1.0f/10.0f,
-							0,0,0,1.0f/10.0f,
-							0,0,0,1.0f/10.0f,
-							0,0,0,1 };
-	m_PlatformconstantBufferData.model._11 *= 100.0f;
-	m_PlatformconstantBufferData.model._22 *= 100.0f;
-	m_PlatformconstantBufferData.model._33 *= 100.0f;*/
-	//XMStoreFloat4x4(&m_PlatformconstantBufferData.view, scalePlat);
 	XMStoreFloat4x4(&m_PlatformconstantBufferData.view, XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_camera))));
 	
 #pragma region Pyrimid
@@ -276,6 +279,9 @@ void Sample3DSceneRenderer::Render(void)
 	// Attach our pixel shader.
 	context->PSSetShader(m_SkyboxpixelShader.Get(), nullptr, 0);
 	// Draw the objects.
+	context->PSSetShaderResources(0, 1, m_SkyboxResourceView.GetAddressOf());
+	context->PSSetSamplers(0, 1, m_SkyboxSampleState.GetAddressOf());
+
 	//context->DrawIndexed(m_SkyboxindexCount, 0, 0);
 #pragma endregion
 
@@ -324,7 +330,7 @@ void Sample3DSceneRenderer::Render(void)
 	context->PSSetShaderResources(0, 1, m_PlatformResourceView.GetAddressOf());
 	context->PSSetSamplers(0, 1, m_PlatformSampleState.GetAddressOf());
 
-	//context->DrawIndexed(m_PlatformindexCount, 0, 0);
+	context->DrawIndexed(m_PlatformindexCount, 0, 0);
 
 #pragma endregion
 }
@@ -517,8 +523,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 
 
 #pragma region skybox
-	loadVSTask = DX::ReadDataAsync(L"SampleVertexShader.cso");
-	loadPSTask = DX::ReadDataAsync(L"SamplePixelShader.cso");
+	loadVSTask = DX::ReadDataAsync(L"SkyVertexShader.cso");
+	loadPSTask = DX::ReadDataAsync(L"SkyPixelShader.cso");
 
 	// After the vertex shader file is loaded, create the shader and input layout.
 	createVSTask = loadVSTask.then([this](const std::vector<byte>& fileData)
@@ -528,7 +534,8 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		static const D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "UV", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			//{ "PL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateInputLayout(vertexDesc, ARRAYSIZE(vertexDesc), &fileData[0], fileData.size(), &m_SkyboxinputLayout));
@@ -549,13 +556,13 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		// Load mesh vertices. Each vertex has a position and a color.
 		static const VertexPositionColor cubeVertices[] =
 		{
-			{ XMFLOAT3(-50.5f, -50.5f, -50.5f), XMFLOAT3(0.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(-50.5f, -50.5f,  50.5f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-50.5f,  50.5f, -50.5f), XMFLOAT3(0.0f, 1.0f, 0.0f) },
-			{ XMFLOAT3(-50.5f,  50.5f,  50.5f), XMFLOAT3(0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(50.5f, -50.5f, -50.5f), XMFLOAT3(1.0f, 0.0f, 0.0f) },
-			{ XMFLOAT3(50.5f, -50.5f,  50.5f), XMFLOAT3(1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(50.5f,  50.5f, -50.5f), XMFLOAT3(1.0f, 1.0f, 0.0f) },
+			{ XMFLOAT3(-50.5f, -50.5f, -50.5f), XMFLOAT3(-1.0f, -1.0f, -1.0f) },
+			{ XMFLOAT3(-50.5f, -50.5f,  50.5f), XMFLOAT3(-1.0f, -1.0f, 1.0f) },
+			{ XMFLOAT3(-50.5f,  50.5f, -50.5f), XMFLOAT3(-1.0f, 1.0f, -1.0f) },
+			{ XMFLOAT3(-50.5f,  50.5f,  50.5f), XMFLOAT3(-1.0f, 1.0f, 1.0f) },
+			{ XMFLOAT3(50.5f, -50.5f, -50.5f), XMFLOAT3(1.0f, -1.0f, -1.0f) },
+			{ XMFLOAT3(50.5f, -50.5f,  50.5f), XMFLOAT3(1.0f, -1.0f, 1.0f) },
+			{ XMFLOAT3(50.5f,  50.5f, -50.5f), XMFLOAT3(1.0f, 1.0f, -1.0f) },
 			{ XMFLOAT3(50.5f,  50.5f,  50.5f), XMFLOAT3(1.0f, 1.0f, 1.0f) },
 		};
 
@@ -565,6 +572,16 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		vertexBufferData.SysMemSlicePitch = 0;
 		CD3D11_BUFFER_DESC vertexBufferDesc(sizeof(cubeVertices), D3D11_BIND_VERTEX_BUFFER);
 		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateBuffer(&vertexBufferDesc, &vertexBufferData, &m_SkyboxvertexBuffer));
+
+		D3D11_SAMPLER_DESC textsample_desc;
+		ZeroMemory(&textsample_desc, sizeof(textsample_desc));
+		textsample_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		textsample_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		textsample_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		textsample_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+		DX::ThrowIfFailed(m_deviceResources->GetD3DDevice()->CreateSamplerState(&textsample_desc, &m_SkyboxSampleState));
+		DX::ThrowIfFailed(CreateDDSTextureFromFile(m_deviceResources->GetD3DDevice(), L"Assets/SunsetSkybox.dds", NULL, &m_SkyboxResourceView));
 
 		// Load mesh indices. Each trio of indices represents
 		// a triangle to be rendered on the screen.
@@ -728,7 +745,12 @@ void Sample3DSceneRenderer::CreateDeviceDependentResources(void)
 		std::vector<unsigned int> index;
 
 		LoadObjFile("Assets/MMstage.obj", vertuvposnorm, index,false);
-
+		for (unsigned int i = 0; i < vertuvposnorm.size(); i++)
+		{
+			vertuvposnorm[i].pos.x *= 300;
+			vertuvposnorm[i].pos.y *= 300;
+			vertuvposnorm[i].pos.z *= 300;
+		}
 		D3D11_SAMPLER_DESC textsample_desc;
 		ZeroMemory(&textsample_desc, sizeof(textsample_desc));
 		textsample_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
