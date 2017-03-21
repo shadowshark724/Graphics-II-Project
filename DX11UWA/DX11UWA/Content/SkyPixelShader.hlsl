@@ -1,4 +1,4 @@
-texture2D base : register(t0);
+TextureCube base : register(t0);
 SamplerState samples : register(s0);
 
 // Per-pixel color data passed through the pixel shader.
@@ -6,7 +6,7 @@ struct PixelShaderInput
 {
 	float4 pos : SV_POSITION;
 	float3 WorldPos : W_POSITION;
-	float3 TexCoord : TEXCOORD;
+	float3 uv : UV;
 };
 
 //float4 DirectionL(PixelShaderInput input)
@@ -67,6 +67,6 @@ float4 main(PixelShaderInput input) : SV_TARGET
 
 	//return AllLight;
 
-	return base.Sample(samples, input.TexCoord); // *AllLight;
+	return base.Sample(samples, input.uv); // *AllLight;
 //	return float4(input.uv, 1.0f);
 }

@@ -49,7 +49,7 @@ void SampleFpsTextRenderer::Update(DX::StepTimer const& timer)
 	// Update display text.
 	uint32 fps = timer.GetFramesPerSecond();
 
-	m_text = (fps > 0) ? std::to_wstring(fps) + L" FPS\nRed - Top - Spot\nGreen - Left - Point\nBlue - Right - Directional" : L" - FPS";
+	m_text = (fps > 0) ? std::to_wstring(fps) + L" FPS\nC- two viewports\nV- one viewport\nU/I-FOV\nJ/K-Near plane\nN/M-Far Plane" : L" - FPS";
 	
 	ComPtr<IDWriteTextLayout> textLayout;
 	DX::ThrowIfFailed(

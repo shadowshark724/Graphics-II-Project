@@ -119,6 +119,33 @@
     <Image Include="Assets\SunsetSkybox.dds">
       <Filter>Assets</Filter>
     </Image>
+    <Image Include="Assets\MidBoss_Floor_Diffuse.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\field.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\fieldnormal.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\MidBoss_Floor_Normal.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\normtest.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\High.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\spyro.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Ngin.dds">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Zam.dds">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -135,6 +162,18 @@
       <Filter>Assets</Filter>
     </None>
     <None Include="Assets\graveller.obj">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Assets\Artisans Hub.obj">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Assets\spyro.obj">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Assets\Ngin.obj">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="Assets\Zam.obj">
       <Filter>Assets</Filter>
     </None>
   </ItemGroup>
@@ -155,6 +194,15 @@
       <Filter>Content\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Content\SkyVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\NormPixelShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\NormVertexShader.hlsl">
+      <Filter>Content\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Content\PostPixelShader.hlsl">
       <Filter>Content\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

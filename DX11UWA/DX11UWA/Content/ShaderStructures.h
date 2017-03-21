@@ -23,5 +23,6 @@ namespace DX11UWA
 		DirectX::XMFLOAT3 pos;
 		DirectX::XMFLOAT3 uv;
 		DirectX::XMFLOAT3 normal;
+		DirectX::XMFLOAT4 tangent;
 	};
 }

@@ -21,14 +21,14 @@ float4 DirectionL(PixelShaderInput input)
 		0.0f, 0.0f, 0.0f, 1.0f
 
 	};
-	pos.x = (-10.0f - input.WorldPos.x);
-	pos.y = (10.0f - input.WorldPos.y);
+	pos.x = (-30.0f - input.WorldPos.x);
+	pos.y = (30.0f - input.WorldPos.y);
 	pos.z = (0.0f - input.WorldPos.z);
 	pos.w = 1.0f;
 	pos = mul(pos,lightz);
 	float3 LightDirection = normalize(pos);
 	float LightRatio = clamp(dot(LightDirection, normalize(input.normal)), 0, 1);
-	float3 Color = { .20f, 0.2f, 1.0f };
+	float3 Color = { 1.0f, 1.0f, 1.0f };
 	float4 ReturnThis = float4(Color*LightRatio, 1.0f);
 	return ReturnThis;
 }
@@ -36,16 +36,13 @@ float4 DirectionL(PixelShaderInput input)
 float4 PointL(PixelShaderInput input)
 {
 	float3x3 lightx = { 1.0f, 0.0f,0.0f,
-		0.0f, cos(input.lightVal.x), -sin(input.lightVal.x),
-		0.0f, sin(input.lightVal.x), cos(input.lightVal.x),
+						0.0f, cos(input.lightVal.x), -sin(input.lightVal.x),
+						0.0f, sin(input.lightVal.x), cos(input.lightVal.x),
 	};
-	/*float3x3 lighty = { cos(input.lightVal.x),0.0f ,sin(input.lightVal.x),
-		input.WorldPos.x, 1.0f, input.WorldPos.z,
-		-sin(input.lightVal.x), 0.0f, cos(input.lightVal.x),
-	};*/
-	float3x3 lighty = { cos(-input.lightVal.x),0.0f ,sin(-input.lightVal.x),
-		0.0f, 1.0f, 0.0f,
-		-sin(-input.lightVal.x), 0.0f, cos(-input.lightVal.x),
+
+	float3x3 lighty = { cos(-input.lightVal.x),0.0f  ,sin(-input.lightVal.x),
+						0.0f,                  1.0f,  0.0f,
+						-sin(-input.lightVal.x), 0.0f, cos(-input.lightVal.x),
 	};
 	float3x3 lightz = { cos(input.lightVal.x), -sin(input.lightVal.x),0.0f, 
 		sin(input.lightVal.x), cos(input.lightVal.x), 0.0f,
@@ -99,7 +96,7 @@ float4 SpotL(PixelShaderInput input)
 	float spotfactor = (ratio > 0.9f) ? 1 : 0;
 	float lightratio = clamp(dot(Direction, normalize(input.normal)), 0.0f, 1.0f);
 
-	float3 clr = { 1.0f,.0f,0.0f };
+	float3 clr = { 0.20f,.20f,1.0f };
 	float4 ReturnThis = float4(clr, 1.0f)*lightratio*spotfactor;
 	return ReturnThis;
 }
@@ -112,11 +109,12 @@ float4 main(PixelShaderInput input) : SV_TARGET
 	float4 PointLight = PointL(input);
 	float4 SpotLight = SpotL(input);
 
-	float4 AllLight = DirectionalLight+PointLight+SpotLight;
+	float4 AllLight = DirectionalLight+PointLight+SpotLight+(baseclr*.5f);
 	//return AllLight;
 	//return PointLight * baseclr;          
 	//return SpotLight * baseclr;
 	//return DirectionalLight * baseclr;
-	return base.Sample(samples, input.uv) * AllLight *baseclr;
+	float4 hold = base.Sample(samples, input.uv) * AllLight *baseclr;
+	return hold;
 //	return float4(input.uv, 1.0f);
 }

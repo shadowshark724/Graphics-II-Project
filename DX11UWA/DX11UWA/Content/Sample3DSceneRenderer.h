@@ -18,6 +18,7 @@ namespace DX11UWA
 		void ReleaseDeviceDependentResources(void);
 		void Update(DX::StepTimer const& timer);
 		void Render(void);
+		void Renderthing(ID3D11DeviceContext3* context);
 		void StartTracking(void);
 		void TrackingUpdate(float positionX);
 		void StopTracking(void);
@@ -29,6 +30,9 @@ namespace DX11UWA
 		void SetMousePosition(const Windows::UI::Input::PointerPoint^ pos);
 		void SetInputDeviceData(const char* kb, const Windows::UI::Input::PointerPoint^ pos);
 
+		float fovVal = 70.0f;
+		float farPlane = 100.0f;
+		float nearPlane = 0.1f;
 
 	private:
 		void Rotate(float radians);
@@ -37,6 +41,16 @@ namespace DX11UWA
 	private:
 		// Cached pointer to device resources.
 		std::shared_ptr<DX::DeviceResources> m_deviceResources;
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterstatefront;
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterstateback;
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterstatereset;
+		Microsoft::WRL::ComPtr<ID3D11BlendState> blenderstate;
+		Microsoft::WRL::ComPtr<ID3D11BlendState> blenderstatereset;
+		D3D11_VIEWPORT * m_viewport1;
+		D3D11_VIEWPORT * m_viewport2;
+		D3D11_VIEWPORT * m_viewport3;
+		bool m_viewbool;
+
 
 		// Direct3D resources for cube geometry.
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_inputLayout;
@@ -45,7 +59,8 @@ namespace DX11UWA
 		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_vertexShader;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_pixelShader;
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_constantBuffer;
-
+		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_SampleState;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_ResourceView[2];
 
 		// Skybox
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_SkyboxinputLayout;
@@ -66,6 +81,27 @@ namespace DX11UWA
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_DittoconstantBuffer;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_DittoSampleState;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_DittoResourceView;
+
+		// zam
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_zaminputLayout;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_zamvertexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_zamindexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_zamvertexShader;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_zampixelShader;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_zamconstantBuffer;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_zamSampleState;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_zamResourceView;
+
+
+		// Land
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_LandinputLayout;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_LandvertexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_LandindexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_LandvertexShader;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_LandpixelShader;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_LandconstantBuffer;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_LandSampleState;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_LandResourceView;
 		
 		// SimplePlatform
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_PlatforminputLayout;
@@ -76,6 +112,18 @@ namespace DX11UWA
 		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_PlatformconstantBuffer;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_PlatformSampleState;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_PlatformResourceView;
+
+		// texture Box
+		Microsoft::WRL::ComPtr<ID3D11InputLayout>	m_textureCubeinputLayout;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_textureCubevertexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_textureCubeindexBuffer;
+		Microsoft::WRL::ComPtr<ID3D11VertexShader>	m_textureCubevertexShader;
+		Microsoft::WRL::ComPtr<ID3D11PixelShader>	m_textureCubepixelShader;
+		Microsoft::WRL::ComPtr<ID3D11Buffer>		m_textureCubeconstantBuffer;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState>  m_textureCubeSampleState;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_textureCubeResourceView;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_textureRenderTargetTextureMap;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_textureCubeRenderTargetView;
 
 		// System resources for cube geometry.
 		ModelViewProjectionConstantBuffer	m_constantBufferData;
@@ -89,10 +137,23 @@ namespace DX11UWA
 		// Ditto
 		ModelViewProjectionConstantBuffer m_DittoconstantBufferData;
 		uint32 m_DittoindexCount;
+		
+		// zam
+		ModelViewProjectionConstantBuffer m_zamconstantBufferData;
+		uint32 m_zamindexCount;
 
-		// Ditto
+		// Land
+		ModelViewProjectionConstantBuffer m_LandconstantBufferData;
+		uint32 m_LandindexCount;
+
+		// Platform
 		ModelViewProjectionConstantBuffer m_PlatformconstantBufferData;
 		uint32 m_PlatformindexCount;
+		
+		// texture cube
+		ModelViewProjectionConstantBuffer	m_textureCubeconstantBufferData;
+		uint32	m_textureCubeindexCount;
+
 
 		// Variables used with the rendering loop.
 		bool	m_loadingComplete;
